@@ -2,5 +2,13 @@
     "buildCommand": "npm run build",
     "installCommand": "npm install",
     "outputDirectory": "dist",
-    "framework": "vite"
+    "framework": "vite",
+    "functions": {
+        "app/api/**/*.ts": {
+            "runtime": "nodejs18.x"
+        }
+    },
+    "env": {
+        "NODE_VERSION": "18"
+    }
 }
