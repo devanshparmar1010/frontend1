@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { Button } from "@/components/ui/button";
@@ -119,10 +119,18 @@ const ProductDetailsPage = () => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [selectedSize, setSelectedSize] = useState<string>("");
+
+  // Available sizes for shoes
+  const availableSizes = ["6", "7", "8", "9", "10", "11", "12"];
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate("/login");
+      return;
+    }
+    if (!selectedSize) {
+      alert("Please select a size before adding to cart");
       return;
     }
     if (product) {
@@ -131,6 +139,7 @@ const ProductDetailsPage = () => {
         name: product.name,
         price: product.price,
         image: product.image || "",
+        size: selectedSize,
       });
     }
   };
@@ -140,12 +149,17 @@ const ProductDetailsPage = () => {
       navigate("/login");
       return;
     }
+    if (!selectedSize) {
+      alert("Please select a size before buying");
+      return;
+    }
     if (product) {
       addToCart({
         id: product.id.toString(),
         name: product.name,
         price: product.price,
         image: product.image || "",
+        size: selectedSize,
       });
       navigate("/cart");
     }
@@ -187,9 +201,49 @@ const ProductDetailsPage = () => {
             <span className="text-gray-500">({product.reviews} reviews)</span>
           </div>
           <p className="text-gray-700 mt-4">{product.description}</p>
+
+          {/* Size Selection */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Select Size
+            </h3>
+            <div className="grid grid-cols-4 gap-2">
+              {availableSizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-4 py-2 border rounded-lg text-center transition-all duration-200 ${
+                    selectedSize === size
+                      ? "border-brand-red bg-brand-red text-white"
+                      : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+            {selectedSize && (
+              <p className="text-sm text-gray-600 mt-2">
+                Selected size:{" "}
+                <span className="font-semibold">{selectedSize}</span>
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-4 mt-6">
-            <Button onClick={handleAddToCart}>Add to Cart</Button>
-            <Button variant="outline" onClick={handleBuyNow}>
+            <Button
+              onClick={handleAddToCart}
+              disabled={!selectedSize}
+              className={!selectedSize ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              Add to Cart
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleBuyNow}
+              disabled={!selectedSize}
+              className={!selectedSize ? "opacity-50 cursor-not-allowed" : ""}
+            >
               Buy Now
             </Button>
           </div>

@@ -9,10 +9,14 @@ const CartPage = () => {
     cartItems,
     removeFromCart,
     updateQuantity,
+    updateSize,
     getCartTotal,
     getCartItemCount,
   } = useCart();
   const navigate = useNavigate();
+
+  // Available sizes for shoes
+  const availableSizes = ["6", "7", "8", "9", "10", "11", "12"];
 
   // Load Razorpay script
   useEffect(() => {
@@ -114,7 +118,7 @@ const CartPage = () => {
               <ul className="divide-y divide-gray-200">
                 {cartItems.map((item) => (
                   <li
-                    key={item.id}
+                    key={`${item.id}-${item.size}`}
                     className="p-6 flex items-center justify-between space-x-6"
                   >
                     <div className="flex items-center space-x-4">
@@ -130,6 +134,27 @@ const CartPage = () => {
                         <p className="text-lg font-bold text-gray-900">
                           ₹{item.price.toFixed(2)}
                         </p>
+                        {/* Size Display and Selection */}
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-600 mb-1">
+                            Size: {item.size}
+                          </p>
+                          <div className="flex space-x-1">
+                            {availableSizes.map((size) => (
+                              <button
+                                key={size}
+                                onClick={() => updateSize(item.id, size)}
+                                className={`px-2 py-1 text-xs border rounded transition-all duration-200 ${
+                                  item.size === size
+                                    ? "border-brand-red bg-brand-red text-white"
+                                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                                }`}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -138,7 +163,11 @@ const CartPage = () => {
                           variant="outline"
                           size="icon"
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
+                            updateQuantity(
+                              item.id,
+                              item.quantity - 1,
+                              item.size
+                            )
                           }
                         >
                           <Minus className="h-4 w-4" />
@@ -150,7 +179,11 @@ const CartPage = () => {
                           variant="outline"
                           size="icon"
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
+                            updateQuantity(
+                              item.id,
+                              item.quantity + 1,
+                              item.size
+                            )
                           }
                         >
                           <Plus className="h-4 w-4" />
@@ -159,7 +192,7 @@ const CartPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id, item.size)}
                         className="text-red-500 hover:text-red-600"
                       >
                         <Trash2 className="h-5 w-5" />

@@ -7,14 +7,16 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  size: string;
 }
 
 // Define the shape of the context
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (item: Omit<CartItem, "quantity">) => void;
-  removeFromCart: (id: string) => void;
+  removeFromCart: (id: string, size?: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  updateSize: (id: string, size: string) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
@@ -34,28 +36,52 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id);
+      // Check if item with same ID and size already exists
+      const existingItem = prevItems.find(
+        (i) => i.id === item.id && i.size === item.size
+      );
       if (existingItem) {
         return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === item.id && i.size === item.size
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
         );
       }
       return [...prevItems, { ...item, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeFromCart = (id: string, size?: string) => {
+    setCartItems((prevItems) => {
+      if (size) {
+        // Remove specific item with specific size
+        return prevItems.filter(
+          (item) => !(item.id === id && item.size === size)
+        );
+      }
+      // Remove all items with the given ID (for backward compatibility)
+      return prevItems.filter((item) => item.id !== id);
+    });
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number, size?: string) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      removeFromCart(id, size);
     } else {
       setCartItems((prevItems) =>
-        prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
+        prevItems.map((item) =>
+          item.id === id && (!size || item.size === size)
+            ? { ...item, quantity }
+            : item
+        )
       );
     }
+  };
+
+  const updateSize = (id: string, size: string) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) => (item.id === id ? { ...item, size } : item))
+    );
   };
 
   const clearCart = () => {
@@ -80,6 +106,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateSize,
         clearCart,
         getCartTotal,
         getCartItemCount,

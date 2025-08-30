@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Heart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   id: number;
@@ -29,9 +30,28 @@ const ProductCard: React.FC<ProductCardProps> = ({
   image,
 }) => {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const [selectedSize, setSelectedSize] = useState<string>("");
+
+  // Available sizes for shoes
+  const availableSizes = ["6", "7", "8", "9", "10", "11", "12"];
 
   const handleAddToCart = () => {
-    addToCart({ id: String(id), name, price, image: image || "" });
+    if (!selectedSize) {
+      alert("Please select a size before adding to cart");
+      return;
+    }
+    addToCart({
+      id: String(id),
+      name,
+      price,
+      image: image || "",
+      size: selectedSize,
+    });
+  };
+
+  const handleImageClick = () => {
+    navigate(`/product/${id}`);
   };
 
   return (
@@ -42,10 +62,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <img
             src={image}
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+            onClick={handleImageClick}
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center cursor-pointer"
+            onClick={handleImageClick}
+          >
             <div className="flex flex-col items-center space-y-2">
               <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                 <span className="text-white text-xl font-bold">P</span>
@@ -79,7 +103,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Quick View Button */}
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-          <button className="bg-white text-black px-6 py-2 font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-gray-100">
+          <button
+            className="bg-white text-black px-6 py-2 font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-gray-100"
+            onClick={handleImageClick}
+          >
             QUICK VIEW
           </button>
         </div>
@@ -122,9 +149,42 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
+        {/* Size Selection */}
+        <div className="mt-3">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Select Size
+          </h4>
+          <div className="grid grid-cols-3 gap-1 mb-3">
+            {availableSizes.map((size) => (
+              <button
+                key={size}
+                onClick={() => setSelectedSize(size)}
+                className={`px-2 py-1 text-xs border rounded transition-all duration-200 ${
+                  selectedSize === size
+                    ? "border-brand-red bg-brand-red text-white"
+                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          {selectedSize && (
+            <p className="text-xs text-gray-600 mb-2">
+              Selected: <span className="font-semibold">{selectedSize}</span>
+            </p>
+          )}
+        </div>
+
         {/* Add to Cart */}
         <div className="pt-2">
-          <Button className="w-full" onClick={handleAddToCart}>
+          <Button
+            onClick={handleAddToCart}
+            disabled={!selectedSize}
+            className={`w-full ${
+              !selectedSize ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
             Add to Cart
           </Button>
         </div>
